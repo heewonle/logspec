@@ -19,6 +19,7 @@ rules:
   - name: skill_only_on_combat
     description: 스킬 번호는 kill/skill 행동에만 붙는다
     row: "(action_type IN ('kill', 'skill')) OR skill_id = 0"
-duplicates: [session_id, ts, action_type]
+# 같은 세션·같은 ms 에 다른 행동이 둘 있을 수 있다(좌표·맵이 다름) → 모든 컬럼이 같아야 중복 적재
+duplicates: [ts, account_id, session_id, action_type, map_id, skill_id, x, y]
 volume: {daily_ratio_vs_median7: [0.6, 1.7]}
 drift: {fields: [action_type], psi_max: 0.1}

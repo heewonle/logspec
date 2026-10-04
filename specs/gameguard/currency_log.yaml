@@ -19,10 +19,12 @@ rules:
   - name: trade_mirror
     description: 거래 1건마다 구매자 출금·판매자 입금 2행
     count: "SELECT abs((SELECT count(*) FROM trades) * 2 - (SELECT count(*) FROM currency_log WHERE reason IN ('p2p','market')))"
-  - name: negative_balance_only_after_refund
-    description: 잔액이 음수가 되는 것은 환불 때만 (결제 취소 악용)
+  - name: negative_balance_starts_with_refund
+    description: 계정의 잔액이 처음 음수가 되는 행은 환불이다 (환불 뒤에는 음수가 이어질 수 있다)
     judgment: human
     violations: |
-      SELECT * FROM currency_log WHERE balance_after < 0 AND reason <> 'refund'
+      SELECT * FROM (
+        SELECT *, row_number() OVER (PARTITION BY account_id ORDER BY log_id) AS k
+        FROM currency_log WHERE balance_after < 0) WHERE k = 1 AND reason <> 'refund'
 volume: {daily_ratio_vs_median7: [0.6, 1.7]}
-drift: {fields: [reason], psi_max: 0.1}
+drift: {fields: [reason], psi_max: 0.3}   # 환불·결제처럼 드문 사유가 있어 개발 월드 정상 데이터에서 일별 PSI 최대 0.26
