@@ -115,13 +115,27 @@ def main():
     ap.add_argument("--data", required=True)
     ap.add_argument("--period", help="적재 기간 시작:끝 (끝 미포함), 예 2026-09-01:2026-09-15")
     ap.add_argument("--out", default="out/latest")
+    ap.add_argument("--summarize", action="store_true",
+                    help="이슈 요약 추가: 원인 분류는 규칙(검사 종류), 요약·확인할 것은 로컬 LLM")
     a = ap.parse_args()
     t0 = time.time()
     res = validate(a.specs, a.data, parse_period(a.period))
     os.makedirs(a.out, exist_ok=True)
     res.to_json(os.path.join(a.out, "results.json"), orient="records", force_ascii=False, indent=1, date_format="iso")
     from .report import write_report
-    path = write_report(res, a.out, data=a.data, period=a.period, seconds=time.time() - t0)
+    notes = None
+    bad = res[res["status"] != "pass"]
+    if a.summarize and len(bad):
+        from .llm import baseline, summarize
+        fails = json.loads(bad.to_json(orient="records", force_ascii=False, date_format="iso"))
+        s = summarize(fails)
+        notes = {"summary": "\n".join([
+            f"**추정 원인 (규칙): {baseline(fails)}**", "",
+            f"- 무엇이: {s.get('what')}", f"- 얼마나: {s.get('how_much')}", f"- 언제부터: {s.get('since_when')}",
+            "- 확인할 것: " + " · ".join(s.get("checks_to_do", [])), f"- 담당: {s.get('owner')}", "",
+            f"> LLM 의견: {s.get('cause')} — {s.get('cause_reason')} "
+            "(원인 분류는 평가에서 규칙 기준선이 더 정확해 규칙을 따른다)"])}
+    path = write_report(res, a.out, data=a.data, period=a.period, seconds=time.time() - t0, llm_notes=notes)
     fail = res[res["status"] != "pass"]
     print(f"검사 {len(res)}개 · 실패 {int((res['status'] == 'fail').sum())} · 실행 불가 {int((res['status'] == 'error').sum())} "
           f"· {time.time() - t0:.1f}초 → {path}")
