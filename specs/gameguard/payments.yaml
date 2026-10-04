@@ -1,0 +1,22 @@
+table: payments
+description: 결제·환불. 환불은 같은 payment_id 의 결제 뒤에 온다
+time_field: ts
+fields:
+  ts:         {type: timestamp, not_null: true, within_period: true}
+  payment_id: {type: int, not_null: true}
+  account_id: {type: int, not_null: true, fk: accounts.account_id}
+  amount_krw: {type: int, not_null: true, min: 1000, max: 1000000}
+  event:      {type: enum, not_null: true, values: [paid, refunded]}
+key: [payment_id, event]
+rules:
+  - name: refund_after_paid
+    description: 환불은 같은 결제 건이 있고 그 뒤에 일어난다, 금액이 같다
+    violations: |
+      SELECT r.* FROM payments r LEFT JOIN payments p
+        ON p.payment_id = r.payment_id AND p.event = 'paid'
+      WHERE r.event = 'refunded' AND (p.payment_id IS NULL OR r.ts < p.ts OR r.amount_krw <> p.amount_krw)
+  - name: purchase_credited
+    description: 결제마다 같은 시각에 골드 지급(purchase) 기록이 있다
+    violations: |
+      SELECT p.* FROM payments p WHERE p.event = 'paid' AND NOT EXISTS (
+        SELECT 1 FROM currency_log c WHERE c.account_id = p.account_id AND c.reason = 'purchase' AND c.ts = p.ts)

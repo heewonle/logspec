@@ -1,0 +1,11 @@
+table: accounts
+description: 계정 마스터. 한 계정당 한 행
+key: [account_id]
+fields:
+  account_id: {type: int, not_null: true, unique: true}
+  created_at: {type: timestamp, not_null: true}
+  country:    {type: enum, values: [KR, JP, TW, US, CN, VN]}
+  device_id:  {type: string, not_null: true, pattern: '^D[0-9]{9}$'}
+  ip_hash:    {type: string, not_null: true, pattern: '^[0-9a-f]{10}$'}
+  guild_id:   {type: int, not_null: true, min: 0}
+  level:      {type: int, not_null: true, min: 1, max: 60}

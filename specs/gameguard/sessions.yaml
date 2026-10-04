@@ -1,0 +1,25 @@
+table: sessions
+description: 접속 세션. 접속 시각 기준으로 적재
+key: [session_id]
+time_field: login_at
+fields:
+  session_id: {type: int, not_null: true, unique: true}
+  account_id: {type: int, not_null: true, fk: accounts.account_id}
+  login_at:   {type: timestamp, not_null: true, within_period: true}
+  logout_at:  {type: timestamp, not_null: true}
+  ip_hash:    {type: string, not_null: true, pattern: '^([0-9a-f]{10}|pcb[0-9a-f]{7})$'}   # pcb… = PC방
+  device_id:  {type: string, not_null: true, pattern: '^(D[0-9]{9}|PC[0-9]{7})$'}        # PC… = PC방 기기
+rules:
+  - name: logout_after_login
+    description: 종료 시각은 접속 시각 이후
+    row: "logout_at >= login_at"
+  - name: session_max_24h
+    description: 한 세션은 24시간을 넘지 않는다
+    row: "logout_at - login_at <= INTERVAL 24 HOUR"
+  - name: no_overlap_per_account
+    description: 같은 계정의 세션은 겹치지 않는다
+    violations: |
+      SELECT * FROM (
+        SELECT *, lag(logout_at) OVER (PARTITION BY account_id ORDER BY login_at) AS prev_logout
+        FROM sessions) WHERE login_at < prev_logout
+volume: {daily_ratio_vs_median7: [0.6, 1.7]}

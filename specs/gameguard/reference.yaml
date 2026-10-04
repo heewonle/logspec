@@ -1,0 +1,12 @@
+# 참조 테이블 (아이템·사냥터 마스터)
+tables:
+  - table: items
+    key: [item_id]
+    fields:
+      item_id: {type: int, not_null: true, unique: true, min: 1}
+      grade:   {type: int, not_null: true, min: 1, max: 4}
+  - table: maps
+    key: [map_id]
+    fields:
+      map_id:    {type: int, not_null: true, unique: true, min: 1}
+      min_level: {type: int, not_null: true, min: 1}

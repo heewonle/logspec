@@ -1,0 +1,15 @@
+table: market_listings
+description: 거래소 매물. 팔린 매물은 trade_id 가 있다
+key: [listing_id]
+fields:
+  ts:         {type: timestamp, not_null: true}       # 매물 등록은 기간 직전일 수 있다
+  listing_id: {type: int, not_null: true, unique: true}
+  seller:     {type: int, not_null: true, fk: accounts.account_id}
+  item_id:    {type: int, not_null: true, fk: items.item_id}
+  price:      {type: int, not_null: true, min: 1}
+  status:     {type: enum, not_null: true, values: [sold, expired, active]}
+  trade_id:   {type: int}
+rules:
+  - name: sold_has_trade
+    description: 판매 완료 매물만 trade_id 가 있다
+    row: "(status = 'sold') = (trade_id IS NOT NULL)"

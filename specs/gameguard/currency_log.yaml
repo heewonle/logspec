@@ -1,0 +1,28 @@
+table: currency_log
+description: 골드 증감 원장. 계정별로 log_id 순서대로 잔액이 이어진다
+key: [log_id]
+time_field: ts
+fields:
+  log_id:        {type: int, not_null: true, unique: true}
+  ts:            {type: timestamp, not_null: true}       # 기초 잔액 행(carryover)은 기간 이전일 수 있다
+  account_id:    {type: int, not_null: true, fk: accounts.account_id}
+  delta:         {type: int, not_null: true}
+  balance_after: {type: int, not_null: true}
+  reason:        {type: enum, not_null: true, values: [carryover, drop, quest, shop, p2p, market, purchase, refund]}
+rules:
+  - name: balance_chain
+    description: balance_after = 직전 balance_after + delta (계정별, log_id 순)
+    running_balance: {partition: account_id, order: log_id, delta: delta, balance: balance_after}
+  - name: sign_by_reason
+    description: 드랍·퀘스트·결제는 증가, 상점·환불은 감소
+    row: "(reason IN ('drop','quest','purchase') AND delta > 0) OR (reason IN ('shop','refund') AND delta < 0) OR reason IN ('carryover','p2p','market')"
+  - name: trade_mirror
+    description: 거래 1건마다 구매자 출금·판매자 입금 2행
+    count: "SELECT abs((SELECT count(*) FROM trades) * 2 - (SELECT count(*) FROM currency_log WHERE reason IN ('p2p','market')))"
+  - name: negative_balance_only_after_refund
+    description: 잔액이 음수가 되는 것은 환불 때만 (결제 취소 악용)
+    judgment: human
+    violations: |
+      SELECT * FROM currency_log WHERE balance_after < 0 AND reason <> 'refund'
+volume: {daily_ratio_vs_median7: [0.6, 1.7]}
+drift: {fields: [reason], psi_max: 0.1}

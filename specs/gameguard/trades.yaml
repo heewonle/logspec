@@ -1,0 +1,27 @@
+table: trades
+description: 1:1 거래와 거래소 체결. 골드는 buyer → seller, item_id=0 이면 아이템 없는 송금
+key: [trade_id]
+time_field: ts
+fields:
+  ts:       {type: timestamp, not_null: true, within_period: true}
+  trade_id: {type: int, not_null: true, unique: true}
+  seller:   {type: int, not_null: true, fk: accounts.account_id}
+  buyer:    {type: int, not_null: true, fk: accounts.account_id, not_equal: seller}
+  item_id:  {type: int, not_null: true, min: 0}
+  qty:      {type: int, not_null: true, min: 0}
+  gold:     {type: int, not_null: true, min: 0}
+  channel:  {type: enum, not_null: true, values: [p2p, market]}
+rules:
+  - name: item_zero_means_no_qty
+    description: 아이템 없는 송금(item_id=0)은 수량 0, 아이템 거래는 수량 1 이상
+    row: "(item_id = 0) = (qty = 0)"
+  - name: item_exists
+    description: 아이템 번호는 아이템 마스터에 있다 (0 제외)
+    violations: "SELECT * FROM trades WHERE item_id > 0 AND item_id NOT IN (SELECT item_id FROM items)"
+  - name: market_trade_has_listing
+    description: 거래소 체결은 판매 완료 매물이 있다
+    violations: |
+      SELECT * FROM trades WHERE channel = 'market'
+        AND trade_id NOT IN (SELECT trade_id FROM market_listings WHERE trade_id IS NOT NULL)
+volume: {daily_ratio_vs_median7: [0.5, 2.0]}
+drift: {fields: [channel], psi_max: 0.1}
