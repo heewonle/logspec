@@ -14,7 +14,7 @@
 | F05  | trades.channel 에 신규 값 'auction' 5%                | True  | True    | `trades.channel:enum`                                                                                                         | 자동      |
 | F06  | 특정일 action_type 대문자로 적재                           | True  | True    | `actions.action_type:enum`, `actions:rule:skill_only_on_combat`, `actions.action_type:drift`                                  | 사람/자동   |
 | F07  | 특정일 세션 시각이 9시간 밀림 (UTC↔KST)                       | True  | True    | `actions:rule:action_within_session`, `sessions:rule:no_overlap_per_account`, `sessions:volume`                               | 사람/자동   |
-| F08  | 특정일 trades 를 두 번 적재                               | True  | True    | `currency_log:rule:trade_mirror`, `trades.trade_id:unique`                                                                    | 자동      |
+| F08  | 특정일 trades 를 두 번 적재                               | True  | True    | `currency_log:rule:trade_mirror`, `trades.trade_id:unique`, `trades:volume`                                                   | 사람/자동   |
 | F09  | 특정일 actions 전체 누락                                 | True  | True    | `actions:volume`                                                                                                              | 사람      |
 | F10  | 특정일 currency_log 절반만 적재                           | True  | True    | `currency_log:rule:balance_chain`, `currency_log:rule:trade_mirror`, `currency_log:volume`, `payments:rule:purchase_credited` | 사람/자동   |
 | F11  | 잔액 계산 오류 (0.5% 행 +1,000)                          | True  | True    | `currency_log:rule:balance_chain`                                                                                             | 자동      |

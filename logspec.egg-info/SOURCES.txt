@@ -1,0 +1,15 @@
+README.md
+pyproject.toml
+logspec/__init__.py
+logspec/checks.py
+logspec/infer.py
+logspec/llm.py
+logspec/report.py
+logspec/runner.py
+logspec/spec.py
+logspec.egg-info/PKG-INFO
+logspec.egg-info/SOURCES.txt
+logspec.egg-info/dependency_links.txt
+logspec.egg-info/requires.txt
+logspec.egg-info/top_level.txt
+tests/test_logspec.py

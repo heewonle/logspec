@@ -121,13 +121,15 @@ def build_checks(spec: TableSpec, period: tuple | None) -> list[Check]:
         lo, hi = spec.volume["daily_ratio_vs_median7"]
         tq = q(tf)
         add(Check(f"{t}:volume", t, tf, "volume", "volume",
-                  f"일별 행 수가 기간 중앙값의 {lo}~{hi}배 안 (빈 날 포함)",
+                  f"일별 행 수가 직전 7일 중앙값의 {lo}~{hi}배 안 (직전 3일 이상 있을 때), 빈 날 없음",
                   f"""WITH days AS (SELECT unnest(range(TIMESTAMP {lit(period[0])}, TIMESTAMP {lit(period[1])}, INTERVAL 1 DAY))::DATE AS day),
                      cnt AS (SELECT {tq}::DATE AS day, count(*) AS n FROM {T} GROUP BY 1),
                      d AS (SELECT days.day, coalesce(cnt.n, 0) AS n FROM days LEFT JOIN cnt USING (day)),
-                     m AS (SELECT median(n) AS med FROM d)
-                  SELECT d.day AS {tq}, d.n AS rows_on_day, round(m.med) AS median_rows, round(d.n / m.med, 3) AS ratio
-                  FROM d, m WHERE d.n < {lo} * m.med OR d.n > {hi} * m.med ORDER BY 1""",
+                     w AS (SELECT day, n,
+                                  median(n) OVER (ORDER BY day ROWS BETWEEN 7 PRECEDING AND 1 PRECEDING) AS base,
+                                  count(*) OVER (ORDER BY day ROWS BETWEEN 7 PRECEDING AND 1 PRECEDING) AS k FROM d)
+                  SELECT day AS {tq}, n AS rows_on_day, round(base) AS median_prev7, round(n / nullif(base, 0), 3) AS ratio
+                  FROM w WHERE n = 0 OR (k >= 3 AND (n < {lo} * base OR n > {hi} * base)) ORDER BY 1""",
                   severity="warn", judgment="human", needs=(tf,)))
     for col in (spec.drift or {}).get("fields", []):
         psi_max = spec.drift.get("psi_max", 0.1)
