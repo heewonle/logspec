@@ -1,0 +1,5 @@
+table: items
+description: 자동 추론 초안 (200행) — 검토 필요
+fields:
+  item_id: {type: int, not_null: true, unique: true}
+  grade: {type: int, not_null: true, min: 0, max: 6}

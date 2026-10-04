@@ -1,0 +1,20 @@
+table: actions
+description: 자동 추론 초안 (1,319,920행) — 검토 필요
+fields:
+  ts: {type: timestamp, not_null: true}
+  account_id: {type: int, not_null: true, min: 0, max: 153301, fk: accounts.account_id}
+  session_id: {type: int, not_null: true, min: 0, max: 7528260, fk: sessions.session_id}
+  action_type:
+    type: enum
+    values: [chat, craft, kill, loot, move, skill]
+    not_null: true
+  map_id: {type: int, not_null: true, min: 0, max: 15, fk: maps.map_id}
+  skill_id: {type: int, not_null: true, min: 0, max: 45}
+  x: {type: float, not_null: true, min: 0, max: 1500.0}
+  y: {type: float, not_null: true, min: 0, max: 1500.0}
+time_field: ts
+volume:
+  daily_ratio_vs_median7: [0.5, 2.0]
+drift:
+  fields: [action_type]
+  psi_max: 0.3

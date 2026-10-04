@@ -1,0 +1,14 @@
+table: market_listings
+description: 자동 추론 초안 (2,678행) — 검토 필요 · 제외 market_listings:volume · 제외 market_listings.status:drift
+fields:
+  ts: {type: timestamp, not_null: true}
+  listing_id: {type: int, not_null: true, unique: true}
+  seller: {type: int, not_null: true, min: 0, max: 153301}
+  item_id: {type: int, not_null: true, min: 0, max: 300, fk: items.item_id}
+  price: {type: int, not_null: true, min: 0, max: 7609213}
+  status:
+    type: enum
+    values: [active, expired, sold]
+    not_null: true
+  trade_id: {type: int, min: 0, max: 13505842, fk: trades.trade_id}
+time_field: ts

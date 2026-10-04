@@ -1,0 +1,18 @@
+table: currency_log
+description: 자동 추론 초안 (52,796행) — 검토 필요
+fields:
+  log_id: {type: int, not_null: true, unique: true}
+  ts: {type: timestamp, not_null: true}
+  account_id: {type: int, not_null: true, min: 0, max: 153301, fk: accounts.account_id}
+  delta: {type: int, not_null: true, max: 99701395}
+  balance_after: {type: int, not_null: true, max: 99701395}
+  reason:
+    type: enum
+    values: [carryover, drop, market, p2p, purchase, quest, refund, shop]
+    not_null: true
+time_field: ts
+volume:
+  daily_ratio_vs_median7: [0.5, 2.0]
+drift:
+  fields: [reason]
+  psi_max: 0.3

@@ -1,0 +1,12 @@
+table: payments
+description: 자동 추론 초안 (300행) — 검토 필요
+fields:
+  ts: {type: timestamp, not_null: true}
+  payment_id: {type: int, not_null: true, min: 0, max: 4500439}
+  account_id: {type: int, not_null: true, min: 0, max: 153267, fk: accounts.account_id}
+  amount_krw: {type: int, not_null: true, min: 0, max: 495000}
+  event:
+    type: enum
+    values: [paid, refunded]
+    not_null: true
+time_field: ts

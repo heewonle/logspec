@@ -1,0 +1,14 @@
+table: accounts
+description: 자동 추론 초안 (2,201행) — 검토 필요 · 제외 accounts:volume · 제외 accounts.country:drift
+fields:
+  account_id: {type: int, not_null: true, unique: true}
+  created_at: {type: timestamp, not_null: true}
+  country:
+    type: enum
+    values: [CN, JP, KR, TW, US, VN]
+    not_null: true
+  device_id: {type: string, not_null: true, pattern: '^D[0-9]{9}$'}
+  ip_hash: {type: string, not_null: true, pattern: '^[0-9a-f]{10}$'}
+  guild_id: {type: int, not_null: true, min: 0, max: 120}
+  level: {type: int, not_null: true, min: 0, max: 90}
+time_field: created_at

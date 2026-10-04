@@ -1,0 +1,12 @@
+table: sessions
+description: 자동 추론 초안 (18,840행) — 검토 필요
+fields:
+  session_id: {type: int, not_null: true, unique: true}
+  account_id: {type: int, not_null: true, min: 0, max: 153301, fk: accounts.account_id}
+  login_at: {type: timestamp, not_null: true}
+  logout_at: {type: timestamp, not_null: true}
+  ip_hash: {type: string, not_null: true}
+  device_id: {type: string, not_null: true, pattern: '^(D[0-9]{9}|PC[0-9]{7})$'}
+time_field: login_at
+volume:
+  daily_ratio_vs_median7: [0.5, 2.0]

@@ -1,0 +1,20 @@
+table: trades
+description: 자동 추론 초안 (3,895행) — 검토 필요
+fields:
+  ts: {type: timestamp, not_null: true}
+  trade_id: {type: int, not_null: true, unique: true}
+  seller: {type: int, not_null: true, min: 0, max: 153301}
+  buyer: {type: int, not_null: true, min: 0, max: 153300}
+  item_id: {type: int, not_null: true, min: 0, max: 300}
+  qty: {type: int, not_null: true, min: 0, max: 1}
+  gold: {type: int, not_null: true, min: 0, max: 4698222}
+  channel:
+    type: enum
+    values: [market, p2p]
+    not_null: true
+time_field: ts
+volume:
+  daily_ratio_vs_median7: [0.5, 2.0]
+drift:
+  fields: [channel]
+  psi_max: 0.3
